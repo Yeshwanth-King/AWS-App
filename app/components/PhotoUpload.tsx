@@ -1,18 +1,31 @@
-'use client';
+"use client";
 
-import { useState, useRef } from 'react';
-import { toast } from 'sonner';
+import { useState, useRef } from "react";
+import { toast } from "sonner";
 // import Image from 'next/image';
+
+interface Author {
+    id: string;
+    username: string;
+    name: string | null;
+    avatar: string | null;
+}
 
 interface Post {
     id: string;
     title: string;
     slug: string;
     content: string;
+    fileType: string;
     published: boolean;
     createdAt: string;
     updatedAt: string;
     authorId?: string;
+    author?: Author;
+    _count?: {
+        likes: number;
+        comments: number;
+    };
 }
 
 interface PhotoUploadProps {
@@ -21,7 +34,7 @@ interface PhotoUploadProps {
 
 export default function PhotoUpload({ onUploadAction }: PhotoUploadProps) {
     const [uploading, setUploading] = useState(false);
-    const [caption, setCaption] = useState('');
+    const [caption, setCaption] = useState("");
     const [dragActive, setDragActive] = useState(false);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -49,12 +62,12 @@ export default function PhotoUpload({ onUploadAction }: PhotoUploadProps) {
     };
 
     const handleFileSelect = (file: File) => {
-        if (file.type.startsWith('image/') || file.type === 'video/mp4') {
+        if (file.type.startsWith("image/") || file.type === "video/mp4") {
             setSelectedFile(file);
             const url = URL.createObjectURL(file);
             setPreviewUrl(url);
         } else {
-            toast.error('Please select an image or video file');
+            toast.error("Please select an image or video file");
         }
     };
 
@@ -71,30 +84,34 @@ export default function PhotoUpload({ onUploadAction }: PhotoUploadProps) {
         setUploading(true);
         try {
             const formData = new FormData();
-            formData.append('photo', selectedFile);
-            formData.append('caption', caption);
+            formData.append("photo", selectedFile);
+            formData.append("caption", caption);
 
-            const response = await fetch('/api/photos', {
-                method: 'POST',
+            const response = await fetch("/api/photos", {
+                method: "POST",
                 body: formData,
-            }); if (response.ok) {
+            });
+            if (response.ok) {
                 const newPhoto = await response.json();
-                console.log('Uploaded photo:', newPhoto);
+                console.log("Uploaded photo:", newPhoto);
                 onUploadAction(newPhoto);
 
                 // Reset form
                 setSelectedFile(null);
                 setPreviewUrl(null);
-                setCaption('');
+                setCaption("");
                 if (fileInputRef.current) {
-                    fileInputRef.current.value = '';
+                    fileInputRef.current.value = "";
                 }
             } else {
-                alert('Failed to upload photo');
+                // const errorData = await response.json().catch(() => ({}));
+                const error = await response.json();
+
+                const errorMessage = error.error || "An error occurred during upload";
+                toast.error(errorMessage);
             }
         } catch (error) {
-            console.error('Upload error:', error);
-            alert('Failed to upload photo');
+            console.error("Upload error:", error);
         } finally {
             setUploading(false);
         }
@@ -103,21 +120,23 @@ export default function PhotoUpload({ onUploadAction }: PhotoUploadProps) {
     const clearSelection = () => {
         setSelectedFile(null);
         setPreviewUrl(null);
-        setCaption('');
+        setCaption("");
         if (fileInputRef.current) {
-            fileInputRef.current.value = '';
+            fileInputRef.current.value = "";
         }
     };
 
     return (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Upload a Photo</h2>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                Upload a Photo
+            </h2>
 
             {!previewUrl ? (
                 <div
                     className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${dragActive
-                        ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
-                        : 'border-gray-300 dark:border-gray-600 hover:border-purple-400 dark:hover:border-purple-500'
+                        ? "border-purple-500 bg-purple-50 dark:bg-purple-900/20"
+                        : "border-gray-300 dark:border-gray-600 hover:border-purple-400 dark:hover:border-purple-500"
                         }`}
                     onDragEnter={handleDrag}
                     onDragLeave={handleDrag}
@@ -161,9 +180,11 @@ export default function PhotoUpload({ onUploadAction }: PhotoUploadProps) {
                     />
                 </div>
             ) : (
-                <div className="space-y-4">          {/* Preview */}
+                <div className="space-y-4">
+                    {" "}
+                    {/* Preview */}
                     <div className="relative">
-                        {selectedFile?.type.startsWith('image/') ? (
+                        {selectedFile?.type.startsWith("image/") ? (
                             // Image preview
                             // eslint-disable-next-line @next/next/no-img-element
                             <img
@@ -171,7 +192,7 @@ export default function PhotoUpload({ onUploadAction }: PhotoUploadProps) {
                                 alt="Preview"
                                 className="w-full h-64 object-cover rounded-lg"
                             />
-                        ) : selectedFile?.type === 'video/mp4' ? (
+                        ) : selectedFile?.type === "video/mp4" ? (
                             // Video preview
                             <video
                                 src={previewUrl!}
@@ -183,12 +204,21 @@ export default function PhotoUpload({ onUploadAction }: PhotoUploadProps) {
                             onClick={clearSelection}
                             className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white p-1 rounded-full transition-colors"
                         >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            <svg
+                                className="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M6 18L18 6M6 6l12 12"
+                                />
                             </svg>
                         </button>
                     </div>
-
                     {/* Caption Input */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -202,7 +232,6 @@ export default function PhotoUpload({ onUploadAction }: PhotoUploadProps) {
                             rows={3}
                         />
                     </div>
-
                     {/* Upload Button */}
                     <div className="flex gap-3">
                         <button
@@ -216,7 +245,7 @@ export default function PhotoUpload({ onUploadAction }: PhotoUploadProps) {
                                     Uploading...
                                 </>
                             ) : (
-                                'Upload Photo'
+                                "Upload Photo"
                             )}
                         </button>
                         <button

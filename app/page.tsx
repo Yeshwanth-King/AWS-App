@@ -3,16 +3,30 @@
 import { useState, useEffect } from 'react';
 import PhotoUpload from './components/PhotoUpload';
 import PhotoGrid from './components/PhotoGrid';
+import Header from './components/Header';
+
+interface Author {
+  id: string;
+  username: string;
+  name: string | null;
+  avatar: string | null;
+}
 
 interface Post {
   id: string;
   title: string;
   slug: string;
   content: string;
+  fileType: string;
   published: boolean;
   createdAt: string;
   updatedAt: string;
   authorId?: string;
+  author?: Author;
+  _count?: {
+    likes: number;
+    comments: number;
+  };
 }
 
 export default function Home() {
@@ -39,27 +53,14 @@ export default function Home() {
     }
   };
 
-  const handlePhotoUpload = (newPhoto: Post) => {
+  const handlePhotoUpload = () => {
     loadPhotos(); // Reload photos after upload
-    setPhotos(prev => [newPhoto, ...prev]);
   };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"></div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">PhotoBlog</h1>
-            </div>
-            <div className="text-sm text-gray-500 dark:text-gray-400">
-              Share your moments
-            </div>
-          </div>
-        </div>
-      </header>
+      <Header />
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

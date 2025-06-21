@@ -1,40 +1,69 @@
-# Photo Blog App
+# PhotoBlog - Modern Social Photo Sharing App
 
-A modern, full-stack photo blog application built with Next.js 15, TypeScript, Prisma, Supabase, and AWS S3. This application allows users to upload photos with captions, view them in a beautiful grid layout, and manage their photo collections.
+A production-ready, full-stack photo blog application built with Next.js 15, featuring user authentication, social interactions, and cloud storage. Share your moments with the world through a beautiful, responsive interface.
 
-## 🚀 Features
+## ✨ Features
 
-- **Photo Upload & Management**: Upload photos with drag-and-drop functionality
-- **Cloud Storage**: Secure photo storage using AWS S3 and CloudFront CDN
-- **Database**: PostgreSQL database hosted on Supabase with Prisma ORM
-- **Modern UI**: Responsive design with Tailwind CSS and dark mode support
-- **Real-time Updates**: Dynamic photo grid with loading states
-- **Type Safety**: Full TypeScript support throughout the application
-- **Performance**: Optimized image loading and caching
+### 🔐 **Authentication & User Management**
+- **Custom JWT Authentication** - Secure, token-based authentication system
+- **User Registration & Login** - Email/password authentication with validation
+- **Session Management** - HTTP-only cookies for security
+- **Protected Routes** - Authentication-required features
+
+### 📸 **Media Upload & Management**
+- **Multi-format Support** - Images (JPEG, PNG, GIF, WebP) and Videos (MP4, WebM, OGG, AVI, MOV)
+- **File Size Limits** - Images max 1MB, Videos max 5MB
+- **Upload Restrictions** - Maximum 5 uploads per user account
+- **Drag & Drop** - Modern file upload interface with preview
+- **Cloud Storage** - AWS S3 with CloudFront CDN for global delivery
+
+### 🤝 **Social Features**
+- **Like System** - Like/unlike posts with real-time counts
+- **Comments** - Add, view, and delete comments on posts
+- **User Profiles** - Author information and avatars
+- **Ownership Controls** - Users can only delete their own content
+
+### 🎨 **User Experience**
+- **Responsive Design** - Works perfectly on desktop, tablet, and mobile
+- **Dark Mode** - Automatic theme switching
+- **Loading States** - Smooth loading indicators and transitions
+- **Error Handling** - User-friendly error messages and validation
+- **Real-time Updates** - Dynamic content without page refreshes
+
+### 🚀 **Performance & Security**
+- **CDN Integration** - Fast global content delivery via CloudFront
+- **Image Optimization** - Next.js automatic image optimization
+- **Type Safety** - Full TypeScript support throughout
+- **Input Validation** - Both client and server-side validation
+- **Secure File Handling** - Proper file type and size validation
 
 ## 🛠️ Tech Stack
 
 ### Frontend
-- **Next.js 15** - React framework with App Router
-- **React 19** - Latest React features
-- **TypeScript** - Type-safe JavaScript
-- **Tailwind CSS v4** - Utility-first CSS framework
+- **Next.js 15** - React framework with App Router and Server Components
+- **React 19** - Latest React features and concurrent rendering
+- **TypeScript** - Full type safety and IntelliSense
+- **Tailwind CSS v4** - Utility-first CSS with modern features
+- **Custom Auth Context** - React Context for authentication state
 - **Sonner** - Beautiful toast notifications
 
 ### Backend & Database
-- **Prisma** - Next-generation ORM
-- **Supabase** - PostgreSQL database hosting
-- **Next.js API Routes** - Serverless API endpoints
+- **Prisma ORM** - Type-safe database operations
+- **PostgreSQL** - Robust relational database via Supabase
+- **Next.js API Routes** - Serverless backend endpoints
+- **JWT Tokens** - Secure authentication with `jose` library
+- **bcryptjs** - Password hashing and security
+- **cookies-next** - Secure cookie handling
 
-### Cloud Services
-- **AWS S3** - Photo storage
-- **AWS CloudFront** - CDN for fast image delivery
-- **Supabase** - Database hosting and authentication ready
+### Cloud Infrastructure
+- **AWS S3** - Scalable object storage for media files
+- **AWS CloudFront** - Global CDN with signed URLs
+- **Supabase** - Managed PostgreSQL database hosting
 
 ### Development Tools
-- **ESLint** - Code linting
-- **PostCSS** - CSS processing
-- **TSX** - TypeScript execution for scripts
+- **ESLint** - Code quality and consistency
+- **PostCSS** - Advanced CSS processing
+- **TSX** - TypeScript execution for build scripts
 
 ## 📦 Installation
 
@@ -77,9 +106,8 @@ A modern, full-stack photo blog application built with Next.js 15, TypeScript, P
    CLOUDFRONT_PUBLIC_KEY="your-cloudfront-public-key-id"
    CLOUDFRONT_PRIVATE_KEY="your-cloudfront-private-key"
    
-   # NextAuth (Optional)
-   NEXTAUTH_SECRET="your-nextauth-secret"
-   NEXTAUTH_URL="http://localhost:3000"
+   # JWT Authentication
+   JWT_SECRET="your-jwt-secret-key-min-32-chars"
    ```
 
 4. **Set up the database**
@@ -98,7 +126,36 @@ A modern, full-stack photo blog application built with Next.js 15, TypeScript, P
 
    Open [http://localhost:3000](http://localhost:3000) to view the application.
 
-## 🗄️ Database Schema
+## � Authentication System
+
+The application uses a custom JWT-based authentication system built from scratch, replacing NextAuth for better control and customization.
+
+### Key Features
+- **JWT Tokens** - Secure authentication using JSON Web Tokens
+- **HTTP-Only Cookies** - Tokens stored in secure, HTTP-only cookies
+- **Password Security** - bcryptjs for hashing and salt generation
+- **Session Management** - Automatic token refresh and validation
+- **Protected Routes** - Server and client-side route protection
+
+### Authentication Flow
+1. **Registration** - Users create accounts with email/password
+2. **Login** - JWT token issued on successful authentication
+3. **Session** - Token stored in HTTP-only cookie for security
+4. **Authorization** - Protected API routes validate tokens
+5. **Logout** - Token invalidated and cookie cleared
+
+### API Endpoints
+- `POST /api/auth/register` - User registration
+- `POST /api/auth/signin` - User sign-in
+- `POST /api/auth/signout` - User sign-out
+- `GET /api/auth/me` - Get current user info
+
+### Client Components
+- `AuthProvider` - React Context Provider for auth state
+- `useAuth` - Custom hook for authentication actions
+- Protected pages automatically redirect unauthenticated users
+
+## �🗄️ Database Schema
 
 The application uses a simplified blog schema with the following models:
 
@@ -125,13 +182,37 @@ The application uses a simplified blog schema with the following models:
 blog-app/
 ├── app/
 │   ├── api/
-│   │   └── photos/
-│   │       └── route.ts          # Photo upload/fetch API
+│   │   ├── auth/
+│   │   │   ├── signin/
+│   │   │   │   └── route.ts      # User sign-in API
+│   │   │   ├── register/
+│   │   │   │   └── route.ts      # User registration API
+│   │   │   ├── signout/
+│   │   │   │   └── route.ts      # User sign-out API
+│   │   │   └── me/
+│   │   │       └── route.ts      # Current user info API
+│   │   ├── photos/
+│   │   │   └── route.ts          # Photo upload/fetch API
+│   │   ├── comments/
+│   │   │   └── route.ts          # Comments API
+│   │   └── likes/
+│   │       └── route.ts          # Likes API
+│   ├── auth/
+│   │   ├── signin/
+│   │   │   └── page.tsx          # Sign-in page
+│   │   └── signup/
+│   │       └── page.tsx          # Registration page
 │   ├── components/
+│   │   ├── AuthProvider.tsx      # Authentication context provider
+│   │   ├── Comments.tsx          # Comments component
+│   │   ├── Header.tsx            # Navigation header
+│   │   ├── LikeButton.tsx        # Like/unlike button
 │   │   ├── LoadingSpinner.tsx    # Loading component
 │   │   ├── PhotoGrid.tsx         # Photo display grid
 │   │   └── PhotoUpload.tsx       # Upload form component
 │   ├── lib/
+│   │   ├── auth.ts              # JWT authentication library
+│   │   ├── AuthContext.tsx      # React authentication context
 │   │   ├── prisma.ts            # Prisma client setup
 │   │   └── s3.ts                # AWS S3 client setup
 │   ├── globals.css              # Global styles
@@ -141,6 +222,8 @@ blog-app/
 │   └── schema.prisma            # Database schema
 ├── public/                      # Static assets
 ├── .env.example                 # Environment variables template
+├── AUTH_MIGRATION_SUMMARY.md    # Authentication migration docs
+├── COMPONENTS_FIXED.md          # Component update documentation
 ├── next.config.ts               # Next.js configuration
 ├── package.json                 # Dependencies and scripts
 ├── tailwind.config.js           # Tailwind CSS configuration
@@ -152,7 +235,7 @@ blog-app/
 - `npm run dev` - Start development server with Turbopack
 - `npm run build` - Build for production
 - `npm run start` - Start production server
-- `npm run lint` - Run ESLint
+- `npm run lint` - Run ESLint with automatic fixing
 - `npm run db:generate` - Generate Prisma client
 - `npm run db:push` - Push schema to database
 - `npm run db:migrate` - Run database migrations
@@ -178,29 +261,32 @@ The `next.config.ts` file includes:
 
 ## 🎨 UI Components
 
-### PhotoUpload
-- Drag-and-drop file upload
-- Image preview functionality
-- Form validation and error handling
-- Loading states with progress indicators
+### Authentication Components
+- **AuthProvider**: React Context provider for authentication state
+- **Header**: Navigation with user menu and auth status
+- **Sign-in/Sign-up Pages**: Custom authentication forms with validation
 
-### PhotoGrid
-- Responsive grid layout
-- Lazy loading for performance
-- Image optimization with Next.js Image component
-- Hover effects and interactions
+### Social Features
+- **LikeButton**: Toggle likes with real-time count updates
+- **Comments**: Add, view, and delete comments with user attribution
+- **User Profiles**: Display user information and avatars
 
-### LoadingSpinner
-- Reusable loading component
-- Smooth animations
-- Consistent styling
+### Photo Management
+- **PhotoUpload**: Drag-and-drop file upload with preview and validation
+- **PhotoGrid**: Responsive grid layout with lazy loading and optimization
+- **LoadingSpinner**: Reusable loading component with smooth animations
 
 ## 🔒 Security Features
 
+- **JWT Authentication**: Secure token-based authentication system
+- **HTTP-Only Cookies**: Tokens stored securely to prevent XSS attacks
+- **Password Hashing**: bcryptjs with salt for secure password storage
+- **Route Protection**: Server-side and client-side authentication checks
 - **Signed URLs**: CloudFront signed URLs for secure image access
 - **File Validation**: Server-side file type and size validation
 - **Environment Variables**: Sensitive data stored securely
 - **CORS Configuration**: Proper cross-origin resource sharing setup
+- **Input Validation**: Both client and server-side data validation
 
 ## 📱 Responsive Design
 
@@ -209,7 +295,33 @@ The `next.config.ts` file includes:
 - Dark mode support
 - Touch-friendly interface
 
-## 🚀 Deployment
+## � Migration from NextAuth
+
+This project has been migrated from NextAuth to a custom JWT authentication system. Key changes include:
+
+### Removed Dependencies
+- `next-auth` - Replaced with custom JWT system
+- `@auth/prisma-adapter` - No longer needed
+
+### New Dependencies
+- `jose` - JWT creation and verification
+- `cookies-next` - Cookie handling utilities
+- `bcryptjs` - Password hashing
+
+### Database Changes
+- Removed NextAuth tables (Account, Session, VerificationToken)
+- Simplified User model for custom authentication
+- Maintained existing Post, Comment, and Like relationships
+
+### Code Changes
+- Replaced `useSession` with `useAuth` hook
+- Updated all API routes to use custom authentication
+- New authentication pages and components
+- Custom JWT token management
+
+For detailed migration information, see `AUTH_MIGRATION_SUMMARY.md`.
+
+## �🚀 Deployment
 
 ### Vercel (Recommended)
 1. Connect your GitHub repository to Vercel
@@ -242,11 +354,3 @@ This project is open source and available under the [MIT License](LICENSE).
 - [Supabase](https://supabase.com/) - Database hosting
 - [Tailwind CSS](https://tailwindcss.com/) - CSS framework
 - [AWS](https://aws.amazon.com/) - Cloud services
-
-## 📞 Support
-
-If you have any questions or need help with setup, please open an issue in the GitHub repository.
-
----
-
-Built with ❤️ using modern web technologies
